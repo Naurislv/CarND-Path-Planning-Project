@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/gnb.dir/src/main.cpp.o CMakeFiles/gnb.dir/src/classifier.cpp.o  -o gnb 
