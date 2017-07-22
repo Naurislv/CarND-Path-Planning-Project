@@ -1,3 +1,0 @@
-/home/nauris/Dropbox/coding/udacity_self_driving/P11-Path-Planning-Project/GaussianNaiveBayes/build/CMakeFiles/edit_cache.dir
-/home/nauris/Dropbox/coding/udacity_self_driving/P11-Path-Planning-Project/GaussianNaiveBayes/build/CMakeFiles/rebuild_cache.dir
-/home/nauris/Dropbox/coding/udacity_self_driving/P11-Path-Planning-Project/GaussianNaiveBayes/build/CMakeFiles/gnb.dir
