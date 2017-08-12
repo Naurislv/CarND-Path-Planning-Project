@@ -75,7 +75,7 @@ void AddFeatures(vector<vector<double>>& data) {
 
 		//data[i].push_back(relative_pos);
 		//data[i].push_back(s * s_dot);
-		//data[i].push_back(d * d_dot);
+		data[i].push_back(d * d_dot);
 	}
 }
 
