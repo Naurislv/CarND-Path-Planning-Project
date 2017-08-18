@@ -4,6 +4,7 @@
 // Standard include
 #include <vector>
 #include <fstream>
+#include <algorithm>
 
 // External include
 #include "external/json.hpp"
@@ -39,6 +40,11 @@ public:
         double s,
         double d
     );
+
+    vector<int> lanes = {0, 1, 2};
+
+    int first_lane = lanes.front();
+    int last_lane = lanes.back();
 
 };
 

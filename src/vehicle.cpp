@@ -109,7 +109,7 @@ void Vehicle::keep_lane(
     for (int i = 1; i <= 50 - states.prev_size; i++) {
         
         // number of points from origin to target location
-        double N = (target_dist / (.02 * ref_vel / 2.24));
+        double N = (target_dist / (.02 * goal_vel / 2.24));
         double x_point = x_add_on + (target_x) / N;
         double y_point = spl(x_point);
 

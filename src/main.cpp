@@ -142,19 +142,26 @@ int main() {
 	States states = States();
 	Predict predict = Predict(map);
 
+	vehicle.lane = 1;
+	vehicle.ref_vel = 48.9; // 48.9
+
+	predict.max_front_distance = 30;
+	predict.min_front_distance = 12;
+	predict.safe_back_distance = 7;
+
     h.onMessage([&vehicle, &states, &predict](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
 		// "42" at the start of the message means there's a websocket message event.
 		// The 4 signifies a websocket message
 		// The 2 signifies a websocket event
 		//auto sdata = string(data).substr(0, length);
-		if (length && length > 2 && data[0] == '4' && data[1] == '2') {
-			auto s = hasData(data);
 
+		if (length && length > 2 && data[0] == '4' && data[1] == '2') {
+
+			auto s = hasData(data);
 			if (s != "") {
 				auto j = json::parse(s);
 				
 				string event = j[0].get<string>();
-				
 				if (event == "telemetry") {
 					// j[1] is the data JSON object
 				
@@ -174,6 +181,10 @@ int main() {
 					states.end_path_s = j[1]["end_path_s"];
 					states.end_path_d = j[1]["end_path_d"];
 
+					if (states.prev_size > 0) {
+						states.car_s = states.end_path_s;
+					}
+
 					// Sensor Fusion Data, a list of all other cars on the same side of the road.
 					states.set_sensor_fusion(j[1]["sensor_fusion"]);
 					states.set_prev_size();  // store prevous path size for later use
@@ -181,25 +192,19 @@ int main() {
 					vector<double> next_x_vals;
 					vector<double> next_y_vals;
 
-					//cout << "Prevous path size: " << previous_path_x.size()
-					//	 << " Car yaw: " << car_yaw
-					//	 << " x: " << car_x  << " y: " << car_y << endl;
+					//cout << "Prevous path size: " << states.previous_path_x.size()
+					//	 << " Car yaw: " << states.car_yaw
+					//	 << " x: " << states.car_x  << " y: " << states.car_y << endl;
 
 					vehicle.states = states; // set states for vehicle class
 					predict.states = states; // set states for predict class
 
-					vehicle.lane = 1;
-					vehicle.ref_vel = 60;
-					predict.velocity(vehicle.ref_vel, vehicle.lane);  // starts from 0
+					predict.velocity(vehicle.goal_vel, vehicle.ref_vel, vehicle.lane);
 
 					vehicle.keep_lane(
 						next_x_vals,
 						next_y_vals
 					);
-
-					//hlp::cout_vector(next_x_vals);
-					//hlp::cout_vector(next_y_vals);
-					// cout << endl;
 
 					// TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
 					json msgJson;

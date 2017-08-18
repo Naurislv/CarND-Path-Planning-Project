@@ -40,6 +40,8 @@ public:
     int lane = 1;
     // Reference velocity
     double ref_vel = 45.9; // mph
+    // Goal velocity set by predicting module, starting with 0
+    double goal_vel = 0; // mph
 };
 
 #endif

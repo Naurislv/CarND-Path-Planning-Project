@@ -41,7 +41,9 @@ void Map::load_data(string file_path) {
 		map_dy.push_back(d_y);
 	}
 
-    map_size = map_x.size();
+	map_size = map_x.size();
+	
+	cout << "Map size: " << map_size << endl;
 }
 
 // Transform from Frenet s,d coordinates to Cartesian x,y

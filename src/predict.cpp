@@ -12,35 +12,121 @@ Predict::Predict(Map input_map) {
 
 Predict::~Predict() {}
 
-double Predict::velocity(double& ref_vel, int current_lane) {
-
-    if (states.prev_size > 0) {
-        states.car_s = states.end_path_s;
-    }
+double Predict::velocity(double& goal_vel, double ref_vel, int& current_lane) {
 
     bool too_close = false;
 
-    // find ref_v to use
+    float keep_straight = 0;
+    
+    // Checking map if it's possible to make left turn
+    float free_left = 0;
+    if (current_lane == map.first_lane) {
+        free_left = 1;
+    }
 
-    for (int i = 0; i < states.sensor_fusion.size(); i++) {
-        // car is in my lane
-        float d = states.sensor_fusion[i][6];
+    // Checking map if it's possible to make right turn
+    float free_right = 0;
+    if (current_lane == map.last_lane) {
+        free_right = 1;
+    }
 
-        if (d < (2 + 4 * current_lane + 2) && d > (2 + 4 * current_lane - 2)) {
-            double vx = states.sensor_fusion[i][3];
-            double vy = states.sensor_fusion[i][4];
-            double check_speed = sqrt(vx * vx + vy * vy);
-            double check_car_s = states.sensor_fusion[i][5];
+    // Checking all possible maneuveres
+    double front_car_speed = 0;
+    
+    for (int car_nr = 0; car_nr < states.sensor_fusion.size(); car_nr++) {
+        float d = states.sensor_fusion[car_nr][6];
 
-            // if using previous points can project s value out
-            check_car_s += ((double)states.prev_size * .02 * check_speed);
+        double vx = states.sensor_fusion[car_nr][3];
+        double vy = states.sensor_fusion[car_nr][4];
+        
+        // calculate vector length from origin which is magnitude of speed
+        double check_speed = sqrt(vx * vx + vy * vy);
+        double check_car_s = states.sensor_fusion[car_nr][5];
+
+        // if using previous points can project s value outvards in time
+        check_car_s += ((double)states.prev_size * .02 * check_speed);
+
+        if (d < (2 + 4 * current_lane + 2) and d > (2 + 4 * current_lane - 2)) {
+            // car is in my lane
+            if (check_car_s > states.car_s) { // We are only interested in cars which is in fron of us
+                keep_straight += 1 / (check_car_s - states.car_s);  // Set cost to left turn if fusion see car there
+            }
 
             // check s values greater than mine and s gap
-            if ((check_car_s > states.car_s) && ((check_car_s - states.car_s) < 30)) {
-                ref_vel = 29.5;
+            // check_car_s > states.car_s ---> If in fron of us
+            // (check_car_s - states.car_s) < 25 ---> Less than 25 meters
+            if ((check_car_s > states.car_s) && ((check_car_s - states.car_s) < allowed_distance)) {
+                too_close = true;
+                front_car_speed = check_speed;
+            }
+        } else if (d < (2 + 4 * (current_lane - 1) + 2) and d > (2 + 4 * (current_lane - 1) - 2)) {
+            // car is in left lane
+
+            if (check_car_s > states.car_s) { // We are only interested in cars which is in fron of us
+                free_left += 1 / (check_car_s - states.car_s);  // Set cost to left turn if fusion see car there
+            }
+
+            if ((check_car_s - states.car_s) < allowed_distance - 3 and
+                (check_car_s - states.car_s) > - safe_back_distance) {
+                free_left += 1;
+            }
+        } else if (d < (2 + 4 * (current_lane + 1) + 2) and d > (2 + 4 * (current_lane + 1) - 2)) {
+            // car is in right lane
+
+            if (check_car_s > states.car_s) { // We are only interested in cars which is in fron of us
+                free_right += 1 / (check_car_s - states.car_s);  // Set cost to rigth turn if fusion see car there
+            }
+
+            if ((check_car_s - states.car_s) < allowed_distance - 3 and
+                (check_car_s - states.car_s) > - safe_back_distance) {
+                free_right += 1;
             }
         }
     }
 
-    return ref_vel;
+    float delta_d = abs(states.car_d - (current_lane * 4 + 2));
+
+    cout << "Left: " << free_left << " " << "Right: " << free_right << " "
+         << "Straght: " << keep_straight << " " << "Distance: " << allowed_distance
+         << endl;
+
+    if (free_right < keep_straight and delta_d < 0.3 and goal_vel > 25) {
+        if (free_right > free_left){
+            current_lane -= 1;
+        } else {
+            current_lane += 1;
+        }
+    } else if (free_left < keep_straight and delta_d < 0.3 and goal_vel > 25) {
+        if (free_left > free_right){
+            current_lane += 1;
+        } else {
+            current_lane -= 1;
+        }
+    }
+
+    if (too_close) { // Also make sure that car is not in the middle of lane transition
+
+        goal_vel -= 0.7; // Stopping
+
+        if (goal_vel < front_car_speed) {
+            goal_vel = front_car_speed;
+        }
+
+        allowed_distance -= 0.25;
+        if (allowed_distance < min_front_distance) {
+            allowed_distance = min_front_distance;
+        }
+
+    } else if (goal_vel < ref_vel) {
+        goal_vel += 0.5; // Accelerating
+        allowed_distance += 0.1;
+        if (allowed_distance > max_front_distance) {
+            allowed_distance = max_front_distance;
+        }
+    } else if (allowed_distance < max_front_distance) {
+        allowed_distance += 0.1;
+        if (allowed_distance > max_front_distance) {
+            allowed_distance = max_front_distance;
+        }
+    }
 }
