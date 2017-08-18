@@ -36,10 +36,11 @@ public:
 	vector<double> map_dy;
     int map_size;
 
-    vector<double> getXY(
-        double s,
-        double d
-    );
+    vector<double> getXY(double s, double d);
+    vector<double> getFrenet(double x, double y, double theta);
+    double distance(double x1, double y1, double x2, double y2);
+    int ClosestWaypoint(double x, double y);
+    int NextWaypoint(double x, double y, double theta);
 
     vector<int> lanes = {0, 1, 2};
 

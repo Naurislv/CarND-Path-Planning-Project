@@ -9,7 +9,7 @@ Vehicle::Vehicle(Map input_map) {
 }
 Vehicle::~Vehicle() {}
 
-void Vehicle::keep_lane(
+void Vehicle::apply_path(
     vector<double> &next_x_vals,
     vector<double> &next_y_vals
 ) {

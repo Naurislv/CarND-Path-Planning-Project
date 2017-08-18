@@ -73,3 +73,101 @@ vector<double> Map::getXY(double s, double d)
 	return {x,y};
 
 }
+
+double Map::distance(double x1, double y1, double x2, double y2)
+{
+	return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1) * (y2 - y1));
+}
+
+int Map::ClosestWaypoint(double x, double y)
+{
+
+	double closestLen = 100000; //large number
+	int closestWaypoint = 0;
+
+	for(int i = 0; i < map_x.size(); i++)
+	{
+		double maps_x = map_x[i];
+		double maps_y = map_y[i];
+		double dist = distance(x, y, maps_x, maps_y);
+		if(dist < closestLen)
+		{
+			closestLen = dist;
+			closestWaypoint = i;
+		}
+
+	}
+
+	return closestWaypoint;
+
+}
+
+int Map::NextWaypoint(double x, double y, double theta)
+{
+
+	int closestWaypoint = ClosestWaypoint(x,y);
+
+	double maps_x = map_x[closestWaypoint];
+	double maps_y = map_y[closestWaypoint];
+
+	double heading = atan2( (maps_y-y),(maps_x-x) );
+
+	double angle = abs(theta-heading);
+
+	if(angle > M_PI/4)
+	{
+		closestWaypoint++;
+	}
+
+	return closestWaypoint;
+
+}
+
+// Transform from Cartesian x,y coordinates to Frenet s,d coordinates
+vector<double> Map::getFrenet(double x, double y, double theta)
+{
+	int next_wp = NextWaypoint(x,y, theta);
+
+	int prev_wp;
+	prev_wp = next_wp-1;
+	if(next_wp == 0)
+	{
+		prev_wp  = map_x.size()-1;
+	}
+
+	double n_x = map_x[next_wp]-map_x[prev_wp];
+	double n_y = map_y[next_wp]-map_y[prev_wp];
+	double x_x = x - map_x[prev_wp];
+	double x_y = y - map_y[prev_wp];
+
+	// find the projection of x onto n
+	double proj_norm = (x_x*n_x+x_y*n_y)/(n_x*n_x+n_y*n_y);
+	double proj_x = proj_norm*n_x;
+	double proj_y = proj_norm*n_y;
+
+	double frenet_d = distance(x_x,x_y,proj_x,proj_y);
+
+	//see if d value is positive or negative by comparing it to a center point
+
+	double center_x = 1000-map_x[prev_wp];
+	double center_y = 2000-map_y[prev_wp];
+	double centerToPos = distance(center_x,center_y,x_x,x_y);
+	double centerToRef = distance(center_x,center_y,proj_x,proj_y);
+
+	if(centerToPos <= centerToRef)
+	{
+		frenet_d *= -1;
+	}
+
+	// calculate s value
+	double frenet_s = 0;
+	for(int i = 0; i < prev_wp; i++)
+	{
+		frenet_s += distance(map_x[i],map_y[i],map_x[i+1],map_y[i+1]);
+	}
+
+	frenet_s += distance(0,0,proj_x,proj_y);
+
+	return {frenet_s,frenet_d};
+
+}

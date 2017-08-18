@@ -25,7 +25,7 @@ public:
     Map map;
     States states;
 
-    double velocity(double& goal_vel, double ref_vel, int& current_lane);
+    double movement(double& goal_vel, double ref_vel, int& current_lane);
 
     int max_front_distance = 30;
     int min_front_distance = 5;

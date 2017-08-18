@@ -44,7 +44,8 @@
         "utility": "cpp",
         "vector": "cpp",
         "alignedvector3": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "adolcforward": "cpp"
     },
     "C_Cpp.intelliSenseEngine": "Default"
 }

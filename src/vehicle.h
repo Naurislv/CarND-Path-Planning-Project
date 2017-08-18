@@ -11,7 +11,7 @@
 
 // Spline guarantees that line will go through all points
 // where polynomial fit does not guarantee that
-#include "external/spline.h"
+#include "external/spline.hpp"
 
 using namespace std;
 
@@ -31,7 +31,7 @@ public:
     Map map;
     States states;
     
-    void keep_lane(
+    void apply_path(
         vector<double> &next_x_vals,
         vector<double> &next_y_vals
     );
